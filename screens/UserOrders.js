@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   SafeAreaView,
-  RefreshControl
+  RefreshControl,
+  Alert
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
@@ -33,12 +34,19 @@ const UserOrders = ({ navigation }) => {
       );
       
       const querySnapshot = await getDocs(q);
-      const ordersData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        date: new Date(doc.data().createdAt).toLocaleDateString(),
-        time: new Date(doc.data().createdAt).toLocaleTimeString(),
-      }));
+      const ordersData = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        const date = new Date(data.createdAt);
+        
+        return {
+          id: doc.id,
+          ...data,
+          date: date.toLocaleDateString(),
+          time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          itemNames: data.items.map(item => item.name).join(', '),
+          firstItemImage: data.items[0]?.image || null
+        };
+      });
       
       setOrders(ordersData);
     } catch (error) {
@@ -65,22 +73,29 @@ const UserOrders = ({ navigation }) => {
       onPress={() => navigation.navigate('OrderDetails', { orderId: item.id })}
     >
       <View style={styles.orderHeader}>
-        <Text style={styles.orderId}>Order #{item.name}</Text>
-        <Text style={styles.orderDate}>{item.date} at {item.time}</Text>
+        <Text style={styles.orderId}>Order #{item.id.slice(0, 8)}</Text>
+        <Text style={styles.orderDate}>{item.date} • {item.time}</Text>
       </View>
+      
       <View style={styles.orderBody}>
-        <View style={styles.orderInfo}>
-          <Ionicons name="pricetag" size={16} color={colors.primary} />
-          <Text style={styles.orderTotal}>Rs{item.total.toFixed(2)}</Text>
+        <View style={styles.orderInfoContainer}>
+          <Ionicons name="fast-food" size={16} color={colors.primary} />
+          <Text style={styles.orderItems} numberOfLines={1}>
+            {item.itemNames}
+          </Text>
         </View>
-        <View style={styles.orderInfo}>
-          <Ionicons name="cube" size={16} color={colors.primary} />
-          <Text style={styles.orderItems}>{item.items.length} items</Text>
-        </View>
-        <View style={[styles.statusBadge, { 
-          backgroundColor: getStatusColor(item.status)
-        }]}>
-          <Text style={styles.statusText}>{item.status}</Text>
+        
+        <View style={styles.orderFooter}>
+          <View style={styles.orderInfo}>
+            <Ionicons name="pricetag" size={16} color={colors.primary} />
+            <Text style={styles.orderTotal}>Rs {item.total.toFixed(2)}</Text>
+          </View>
+          
+          <View style={[styles.statusBadge, { 
+            backgroundColor: getStatusColor(item.status)
+          }]}>
+            <Text style={styles.statusText}>{item.status.toUpperCase()}</Text>
+          </View>
         </View>
       </View>
     </TouchableOpacity>
@@ -116,9 +131,15 @@ const UserOrders = ({ navigation }) => {
 
       {orders.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Ionicons name="receipt" size={60} color={colors.gray} />
-          <Text style={styles.emptyText}>No orders found</Text>
+          <Ionicons name="receipt" size={60} color={colors.lightGray} />
+          <Text style={styles.emptyText}>No orders yet</Text>
           <Text style={styles.emptySubText}>Your orders will appear here</Text>
+          <TouchableOpacity 
+            style={styles.continueShoppingButton}
+            onPress={() => navigation.navigate('Home')}
+          >
+            <Text style={styles.continueShoppingText}>Continue Shopping</Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <FlatList
@@ -131,6 +152,7 @@ const UserOrders = ({ navigation }) => {
               refreshing={refreshing}
               onRefresh={onRefresh}
               colors={[colors.primary]}
+              tintColor={colors.primary}
             />
           }
         />
@@ -162,33 +184,47 @@ const styles = StyleSheet.create({
   },
   orderCard: {
     backgroundColor: colors.white,
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 15,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
     shadowColor: colors.darkGray,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
     elevation: 2,
   },
   orderHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 10,
-    paddingBottom: 10,
+    marginBottom: 12,
+    paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: colors.lightGray,
   },
   orderId: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 15,
+    fontWeight: '600',
     color: colors.text,
   },
   orderDate: {
-    fontSize: 14,
+    fontSize: 13,
     color: colors.gray,
   },
   orderBody: {
+    marginTop: 4,
+  },
+  orderInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  orderItems: {
+    fontSize: 14,
+    color: colors.darkGray,
+    marginLeft: 8,
+    flex: 1,
+  },
+  orderFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -198,20 +234,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   orderTotal: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 15,
+    fontWeight: '600',
     color: colors.text,
-    marginLeft: 5,
-  },
-  orderItems: {
-    fontSize: 14,
-    color: colors.darkGray,
-    marginLeft: 5,
+    marginLeft: 6,
   },
   statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 15,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
   },
   statusText: {
     fontSize: 12,
@@ -226,14 +257,26 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: colors.text,
-    marginTop: 15,
+    marginTop: 16,
   },
   emptySubText: {
     fontSize: 14,
     color: colors.gray,
-    marginTop: 5,
+    marginTop: 4,
+  },
+  continueShoppingButton: {
+    marginTop: 24,
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    backgroundColor: colors.primary,
+    borderRadius: 24,
+  },
+  continueShoppingText: {
+    color: colors.white,
+    fontWeight: '600',
+    fontSize: 15,
   },
 });
 

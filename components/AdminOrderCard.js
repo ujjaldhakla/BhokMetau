@@ -1,26 +1,37 @@
-// import React from 'react';
+// import React, { useState } from 'react';
 // import { 
-//   View, Text, StyleSheet, TouchableOpacity, Alert 
+//   View, Text, StyleSheet, TouchableOpacity, Alert, 
+//   SafeAreaView
 // } from 'react-native';
 // import { Ionicons } from '@expo/vector-icons';
+// import { Picker } from '@react-native-picker/picker';
 // import colors from '../constants/colors';
 // import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 // import { db } from '../firebase';
 
+
+// const STATUS_OPTIONS = ['pending', 'preparing', 'delivered', 'completed', 'cancelled'];
+
 // const AdminOrderCard = ({ order, onPress }) => {
+//   const [selectedStatus, setSelectedStatus] = useState(order.status || 'pending');
+
 //   const formatDate = (dateString) => {
 //     if (!dateString) return 'N/A';
 //     const date = new Date(dateString);
 //     return date.toLocaleString();
 //   };
 
-//   const totalItems = order.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+//   // const totalItems = order.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
 
-//   const handleUpdateStatus = async () => {
+//   const itemNames = order.items?.map(item => item.name).join(', ') || 'No items';
+
+
+//   const handleStatusChange = async (newStatus) => {
+//     setSelectedStatus(newStatus);
 //     try {
 //       const orderRef = doc(db, 'orders', order.id);
 //       await updateDoc(orderRef, {
-//         status: 'completed',
+//         status: newStatus,
 //         updatedAt: new Date(),
 //       });
 //     } catch (error) {
@@ -49,39 +60,40 @@
 //     );
 //   };
 
+//   const statusColor = {
+//     completed: colors.success,
+//     cancelled: colors.error,
+//     pending: colors.warning,
+//     preparing: colors.warning,
+//     delivered: colors.primary,
+//   }[selectedStatus] || colors.gray;
+
+//   const badgeBgColor = {
+//     completed: colors.successLight,
+//     cancelled: colors.errorLight,
+//     pending: colors.warningLight,
+//     preparing: colors.warningLight,
+//     delivered: colors.primaryLight,
+//   }[selectedStatus] || colors.lightGray;
+
 //   return (
-//     <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.8}>
+   
+//     <View style={styles.container} onPress={onPress} activeOpacity={0.8}>
 //       <View style={styles.header}>
-//         <Text style={styles.orderId}>Order #{order.id.substring(0, 8).toUpperCase()}</Text>
-//         <View style={[
-//           styles.statusBadge,
-//           {
-//             backgroundColor:
-//               order.status === 'completed' ? colors.successLight :
-//               order.status === 'cancelled' ? colors.errorLight :
-//               colors.warningLight
-//           }
-//         ]}>
-//           <Text style={[
-//             styles.statusText,
-//             {
-//               color:
-//                 order.status === 'completed' ? colors.success :
-//                 order.status === 'cancelled' ? colors.error :
-//                 colors.warning
-//             }
-//           ]}>
-//             {order.status?.charAt(0).toUpperCase() + order.status?.slice(1) || 'Pending'}
+//         <Text style={styles.orderId}>Order: </Text>
+//         <View style={[styles.statusBadge, { backgroundColor: badgeBgColor }]}>
+//           <Text style={[styles.statusText, { color: statusColor }]}>
+//             {selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1)}
 //           </Text>
 //         </View>
 //       </View>
 
 //       <View style={styles.details}>
 //         <Text style={styles.customerName}>{order.customer?.name || 'No name provided'}</Text>
+//          {/* <Text style={{fontWeight:'bold', fontStyle:'italic', color:'green'}}>{itemNames}</Text> */}
 //         <Text style={styles.customerInfo}>
-//           Ph: {order.customer?.phone} Address: {order.customer?.address}
+//           Ph: {order.customer?.phone}, Address:<Text style={{color:'rgb(204, 53, 154)', fontWeight:'blod'}}>{order.customer?.address}</Text> 
 //         </Text>
-
 //         {order.notes && (
 //           <Text style={styles.notes} numberOfLines={2}>
 //             <Text style={{ fontWeight: 'bold' }}>Notes: </Text>{order.notes}
@@ -91,8 +103,18 @@
 
 //       <View style={styles.footer}>
 //         <View style={styles.summary}>
-//           <Text style={styles.itemsText}>{totalItems} items</Text>
-//           <Text style={styles.totalText}>${order.total?.toFixed(2) || '0.00'}</Text>
+//           {/* <Text >Item : {order.item?.name}</Text> */}
+//        {/* <Text style={styles.itemsText}><Text style={{fontWeight:'bold', color:'green'}}>{totalItems} </Text>items</Text>    */}
+// <View style={{ marginTop: 10 }}>
+//   {order.items?.map((item, index) => (
+//     <Text key={index} style={styles.itemText}>
+//       {index + 1}. {item.name} ({item.quantity}) - Rs{item.price.toFixed(2)}
+//     </Text>
+//   ))}
+// </View>
+
+       
+//           <Text style={styles.totalText}>Rs{order.total?.toFixed(2) || '0.00'}</Text>
 //         </View>
 //         <View style={styles.dateContainer}>
 //           <Ionicons name="time-outline" size={14} color={colors.gray} style={styles.timeIcon} />
@@ -100,25 +122,34 @@
 //           <Ionicons name="chevron-forward" size={18} color={colors.gray} />
 //         </View>
 
-//         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 }}>
-//           {order.status !== 'completed' && (
-//             <TouchableOpacity
-//               style={{ backgroundColor: colors.successLight, padding: 8, borderRadius: 8 }}
-//               onPress={handleUpdateStatus}
-//             >
-//               <Text style={{ color: colors.success, fontWeight: 'bold' }}>Mark as Completed</Text>
-//             </TouchableOpacity>
-//           )}
-
-//           <TouchableOpacity
-//             style={{ backgroundColor: colors.errorLight, padding: 8, borderRadius: 8 }}
-//             onPress={handleDelete}
+//         {/* Picker Dropdown for Status Update */}
+//         <View style={{ marginTop: 12, borderColor: colors.lightGray, borderWidth: 1, borderRadius: 8 }}>
+//           <Picker
+//             selectedValue={selectedStatus}
+//             onValueChange={(value) => handleStatusChange(value)}
+//             dropdownIconColor={colors.primary}
+//             style={{ height: 50 }}
 //           >
-//             <Text style={{ color: colors.error, fontWeight: 'bold' }}>Delete</Text>
-//           </TouchableOpacity>
+//             {STATUS_OPTIONS.map((status) => (
+//               <Picker.Item
+//                 label={status.charAt(0).toUpperCase() + status.slice(1)}
+//                 value={status}
+//                 key={status}
+//               />
+//             ))}
+//           </Picker>
 //         </View>
+
+//         {/* Delete Button */}
+//         <TouchableOpacity
+//           style={{ backgroundColor: colors.errorLight, padding: 8, borderRadius: 8, marginTop: 10 }}
+//           onPress={handleDelete}
+//         >
+//           <Text style={{ color: colors.error, fontWeight: 'bold', textAlign: 'center' }}>Delete Order</Text>
+//         </TouchableOpacity>
 //       </View>
-//     </TouchableOpacity>
+//     </View>
+   
 //   );
 // };
 
@@ -205,10 +236,15 @@
 //     fontSize: 12,
 //     flex: 1,
 //   },
+//   itemText: {
+//   fontSize: 14,
+//   color: colors.darkGray,
+//   marginBottom: 4,
+// }
+
 // });
 
 // export default AdminOrderCard;
-
 
 import React, { useState } from 'react';
 import { 
@@ -221,8 +257,7 @@ import colors from '../constants/colors';
 import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
-
-const STATUS_OPTIONS = ['pending', 'preparing', 'delivered', 'completed', 'cancelled'];
+const STATUS_OPTIONS = ['pending', 'Accepted', 'delivered', 'completed', 'cancelled'];
 
 const AdminOrderCard = ({ order, onPress }) => {
   const [selectedStatus, setSelectedStatus] = useState(order.status || 'pending');
@@ -236,7 +271,6 @@ const AdminOrderCard = ({ order, onPress }) => {
   // const totalItems = order.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
 
   const itemNames = order.items?.map(item => item.name).join(', ') || 'No items';
-
 
   const handleStatusChange = async (newStatus) => {
     setSelectedStatus(newStatus);
@@ -276,7 +310,7 @@ const AdminOrderCard = ({ order, onPress }) => {
     completed: colors.success,
     cancelled: colors.error,
     pending: colors.warning,
-    preparing: colors.warning,
+    Accepted: colors.warning,
     delivered: colors.primary,
   }[selectedStatus] || colors.gray;
 
@@ -284,12 +318,11 @@ const AdminOrderCard = ({ order, onPress }) => {
     completed: colors.successLight,
     cancelled: colors.errorLight,
     pending: colors.warningLight,
-    preparing: colors.warningLight,
+    Accepted: colors.warningLight,
     delivered: colors.primaryLight,
   }[selectedStatus] || colors.lightGray;
 
   return (
-   
     <View style={styles.container} onPress={onPress} activeOpacity={0.8}>
       <View style={styles.header}>
         <Text style={styles.orderId}>Order: </Text>
@@ -302,10 +335,30 @@ const AdminOrderCard = ({ order, onPress }) => {
 
       <View style={styles.details}>
         <Text style={styles.customerName}>{order.customer?.name || 'No name provided'}</Text>
-         {/* <Text style={{fontWeight:'bold', fontStyle:'italic', color:'green'}}>{itemNames}</Text> */}
         <Text style={styles.customerInfo}>
-          Ph: {order.customer?.phone}, Address:<Text style={{color:'rgb(204, 53, 154)', fontWeight:'blod'}}>{order.customer?.address}</Text> 
+          Ph: {order.customer?.phone}, Address: <Text style={{color:'rgb(204, 53, 154)', fontWeight:'bold'}}>{order.customer?.address}</Text> 
         </Text>
+
+        {/* User Status Line */}
+       <Text
+  style={{
+    fontWeight: '600',
+    marginBottom: 6,
+  }}
+>
+  User Status:<Text  style={{
+    fontWeight: '600',
+    marginBottom: 6,
+    color: {
+      received: colors.success,
+      cancelled: colors.error,
+      pending: colors.warning,
+      preparing: colors.warning,
+      delivered: colors.primary,
+    }[order.userStatus?.toLowerCase()] || colors.gray,
+  }}> {order.userStatus ? order.userStatus.charAt(0).toUpperCase() + order.userStatus.slice(1) : 'N/A'}</Text>
+</Text>
+
         {order.notes && (
           <Text style={styles.notes} numberOfLines={2}>
             <Text style={{ fontWeight: 'bold' }}>Notes: </Text>{order.notes}
@@ -315,17 +368,14 @@ const AdminOrderCard = ({ order, onPress }) => {
 
       <View style={styles.footer}>
         <View style={styles.summary}>
-          {/* <Text >Item : {order.item?.name}</Text> */}
-       {/* <Text style={styles.itemsText}><Text style={{fontWeight:'bold', color:'green'}}>{totalItems} </Text>items</Text>    */}
-<View style={{ marginTop: 10 }}>
-  {order.items?.map((item, index) => (
-    <Text key={index} style={styles.itemText}>
-      {index + 1}. {item.name} ({item.quantity}) - Rs{item.price.toFixed(2)}
-    </Text>
-  ))}
-</View>
+          <View style={{ marginTop: 10 }}>
+            {order.items?.map((item, index) => (
+              <Text key={index} style={styles.itemText}>
+                {index + 1}. {item.name} ({item.quantity}) - Rs{item.price.toFixed(2)}
+              </Text>
+            ))}
+          </View>
 
-       
           <Text style={styles.totalText}>Rs{order.total?.toFixed(2) || '0.00'}</Text>
         </View>
         <View style={styles.dateContainer}>
@@ -361,7 +411,6 @@ const AdminOrderCard = ({ order, onPress }) => {
         </TouchableOpacity>
       </View>
     </View>
-   
   );
 };
 
@@ -449,11 +498,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   itemText: {
-  fontSize: 14,
-  color: colors.darkGray,
-  marginBottom: 4,
-}
-
+    fontSize: 14,
+    color: colors.darkGray,
+    marginBottom: 4,
+  },
 });
 
 export default AdminOrderCard;

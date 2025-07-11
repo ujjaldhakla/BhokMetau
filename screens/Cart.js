@@ -23,11 +23,11 @@ const Cart = ({ navigation }) => {
       <Image source={item.image} style={styles.itemImage} />
       <View style={styles.itemDetails}>
         <Text style={styles.itemName}>{item.name}</Text>
-        <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
+        <Text style={styles.itemPrice}>Rs{item.price.toFixed(2)}</Text>
         <View style={styles.quantityContainer}>
           <TouchableOpacity
             onPress={() => updateQuantity(item.id, item.quantity - 1)}
-            style={styles.quantityButton}
+            style={styles.quantityButton} 
           >
             <Ionicons name="remove" size={16} color={colors.primary} />
           </TouchableOpacity>
@@ -82,7 +82,7 @@ const Cart = ({ navigation }) => {
           />
           <View style={styles.totalContainer}>
             <Text style={styles.totalText}>Total:</Text>
-            <Text style={styles.totalAmount}>${total.toFixed(2)}</Text>
+            <Text style={styles.totalAmount}>Rs {total.toFixed(2)}</Text>
           </View>
           <Button
             title="Proceed to Checkout"

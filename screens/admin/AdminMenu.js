@@ -26,4 +26,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AdminMenu;
+export default AdminMenu; 

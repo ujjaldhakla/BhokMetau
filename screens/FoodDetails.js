@@ -64,7 +64,7 @@ const FoodDetails = ({ route, navigation }) => {
         >
           <Text style={styles.name}>{item.name}</Text>
           <View style={styles.priceRatingContainer}>
-            <Text style={styles.price}>${item.price.toFixed(2)}</Text>
+            <Text style={styles.price}>Rs{item.price.toFixed(2)}</Text>
             <View style={styles.ratingContainer}>
               <Ionicons name="star" size={18} color={colors.accent} />
               <Text style={styles.rating}>{item.rating}</Text>

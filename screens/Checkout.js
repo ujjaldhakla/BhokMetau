@@ -240,13 +240,13 @@ const Checkout = ({ navigation }) => {
               )}
             </View>
             <Text style={styles.orderItemPrice}>
-              ${(item.price * item.quantity).toFixed(2)}
+              Rs {(item.price * item.quantity).toFixed(2)}
             </Text>
           </View>
         ))}
         <View style={styles.totalContainer}>
           <Text style={styles.totalText}>Total:</Text>
-          <Text style={styles.totalAmount}>${total.toFixed(2)}</Text>
+          <Text style={styles.totalAmount}>Rs {total.toFixed(2)}</Text>
         </View>
       </View>
 
